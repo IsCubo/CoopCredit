@@ -1,3 +1,73 @@
+server:
+  port: 8081
+
 spring:
+  profiles:
+    active: dev
   application:
     name: CoopCredit
+  datasource:
+    url: jdbc:postgresql://localhost:5432/coop_credit_db
+    username: root
+    password: admin123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    database: PostgreSQL
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 50
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+logging:
+  level:
+    com.riwi.coopcredit: DEBUG
+
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItOutEnabled: true
+    displayRequestDuration: true
+    deepLinking: true
+  api-docs:
+    path: /v3/api-docs
+  show-actuator: true
+
+external:
+  risk-service:
+    url: ${EXTERNAL_SERVICE_URL:http://localhost:8082/risk-evaluation}
+    timeout: 5000
+
+
+jwt:
+  secret:
+    key: ${SECRET_KEY:MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI}
+  expiration:
+    time: ${EXPIRATION_TOKEN:86400000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus, loggers # Exponer métricas y logs
+  endpoint:
+    health:
+      show-details: always # Mostrar detalles en el endpoint de salud
+    metrics:
+      access: read_only
+    Prometheus: # Habilitar el formato Prometheus para integración con sistemas de monitoreo
+      access: read_only
+  metrics:
+    tags:
+      application: ${spring.application.name} # Etiquetar métricas con el nombre del servicio
