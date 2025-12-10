@@ -4,9 +4,9 @@ INSERT INTO role (name) VALUES ('ROLE_ANALISTA');
 INSERT INTO role (name) VALUES ('ROLE_ADMIN');
 
 -- Insert default admin user (password: admin123 hashed with BCrypt)
--- BCrypt hash of "admin123": $2a$10$slYQmyNdGzin7olVN3p5Be7DlH.PKZbv5H8KnzzVgXXbVxzy6QFDO
+-- BCrypt hash of "admin123": $2a$10$K9mG8bl5FGm1tp05zSmlWuwOA3hUpYrpGB3f6FV1.pB8QWC8smRYe
 INSERT INTO coop_user (username, password, is_enabled, created_at) 
-VALUES ('admin@coopcredit.com', '$2a$10$slYQmyNdGzin7olVN3p5Be7DlH.PKZbv5H8KnzzVgXXbVxzy6QFDO', true, CURRENT_TIMESTAMP);
+VALUES ('admin@coopcredit.com', '$2a$10$K9mG8bl5FGm1tp05zSmlWuwOA3hUpYrpGB3f6FV1.pB8QWC8smRYe', true, CURRENT_TIMESTAMP);
 
 -- Assign ROLE_ADMIN to admin user
 INSERT INTO user_role (user_id, role_id) 
@@ -14,9 +14,9 @@ SELECT u.id, r.id FROM coop_user u, role r
 WHERE u.username = 'admin@coopcredit.com' AND r.name = 'ROLE_ADMIN';
 
 -- Insert default affiliate user (password: affiliate123 hashed with BCrypt)
--- BCrypt hash of "affiliate123": $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/KFm
+-- BCrypt hash of "affiliate123": $2a$10$kUd024Yg6ExCx5RtFyUfy.rN/CfcCf4DhUUe6LxaHLaQS8rW2zh/q
 INSERT INTO coop_user (username, password, is_enabled, created_at) 
-VALUES ('afiliado@coopcredit.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/KFm', true, CURRENT_TIMESTAMP);
+VALUES ('afiliado@coopcredit.com', '$2a$10$kUd024Yg6ExCx5RtFyUfy.rN/CfcCf4DhUUe6LxaHLaQS8rW2zh/q', true, CURRENT_TIMESTAMP);
 
 -- Assign ROLE_AFILIADO to affiliate user
 INSERT INTO user_role (user_id, role_id) 

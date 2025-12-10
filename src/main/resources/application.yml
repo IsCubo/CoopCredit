@@ -4,12 +4,14 @@ server:
 spring:
   profiles:
     active: dev
+
   application:
     name: CoopCredit
+
   datasource:
-    url: jdbc:postgresql://localhost:5432/coop_credit_db
-    username: root
-    password: admin123
+    url: ${DB_URL_POSTGRES}
+    username: ${DB_USERNAME_POSTGRES}
+    password: ${DB_PASSWORD_POSTGRES}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -46,28 +48,42 @@ springdoc:
 
 external:
   risk-service:
-    url: ${EXTERNAL_SERVICE_URL:http://localhost:8082/risk-evaluation}
+    url: ${EXTERNAL_SERVICE_URL}
     timeout: 5000
-
 
 jwt:
   secret:
-    key: ${SECRET_KEY:MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI}
+    key: ${SECRET_KEY}
   expiration:
-    time: ${EXPIRATION_TOKEN:86400000}
+    time: ${EXPIRATION_TOKEN}
 
 management:
   endpoints:
     web:
       exposure:
-        include: health, info, metrics, prometheus, loggers # Exponer métricas y logs
+        include: health, info, metrics, prometheus, loggers, threaddump, heapdump
+      base-path: /actuator
   endpoint:
     health:
-      show-details: always # Mostrar detalles en el endpoint de salud
+      show-details: always
+      probes:
+        enabled: true
     metrics:
       access: read_only
-    Prometheus: # Habilitar el formato Prometheus para integración con sistemas de monitoreo
+    prometheus:
       access: read_only
   metrics:
+    export:
+      prometheus:
+        enabled: true
     tags:
-      application: ${spring.application.name} # Etiquetar métricas con el nombre del servicio
+      application: ${spring.application.name}
+      environment: ${spring.profiles.active}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true

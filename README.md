@@ -1,335 +1,212 @@
-# 🏦 CoopCredit - Sistema de Gestión de Solicitudes de Crédito
+# 🏦 CoopCredit - Credit Application Management System
 
-## 📋 Descripción
+## 📋 Description
 
-CoopCredit es un sistema integral de gestión de solicitudes de crédito para cooperativas, construido con **Arquitectura Hexagonal**, **Spring Boot 3.5**, **PostgreSQL** y **Seguridad JWT**. El sistema proporciona:
+CoopCredit is a comprehensive credit application management system for cooperatives, built with **Hexagonal Architecture**, **Spring Boot 3.5**, **PostgreSQL**, and **JWT Security**. The system provides:
 
-- ✅ Autenticación y autorización con JWT
-- ✅ Gestión de afiliados (cooperativistas)
-- ✅ Solicitudes de crédito con evaluación automática de riesgo
-- ✅ Integración con servicio externo de evaluación de riesgo
-- ✅ Validaciones avanzadas y manejo global de errores
-- ✅ Observabilidad con Actuator + Micrometer
-- ✅ Documentación interactiva con Swagger/OpenAPI
-- ✅ Pruebas unitarias e integración
-- ✅ Containerización con Docker
+- ✅ Authentication and authorization with JWT
+- ✅ Affiliate (cooperative member) management
+- ✅ Credit applications with automatic risk evaluation
+- ✅ Integration with external risk evaluation service
+- ✅ Advanced validations and global error handling
+- ✅ Observability with Actuator + Micrometer
+- ✅ Interactive documentation with Swagger/OpenAPI
+- ✅ Unit and integration tests
+- ✅ Containerization with Docker
+- ✅ Database migrations with Flyway
 
 ---
 
-## 🚀 Inicio Rápido
+## 🚀 Quick Start
 
-### Requisitos
+### Requirements
 - Java 17+
 - Maven 3.8+
 - Docker & Docker Compose
 
-### Opción 1: Ejecutar con Script (Recomendado)
+### Option 1: Run with Script (Recommended)
 
 ```bash
-# Hacer el script ejecutable
+# Make the script executable
 chmod +x start.sh
 
-# Ejecutar el script que levanta PostgreSQL + Spring Boot
+# Run the script that starts PostgreSQL + Spring Boot
 ./start.sh
 ```
 
-El script automáticamente:
-1. Levanta PostgreSQL en Docker
-2. Espera a que PostgreSQL esté listo
-3. Compila la aplicación
-4. Ejecuta Spring Boot
+The script automatically:
+1. Starts PostgreSQL in Docker
+2. Waits for PostgreSQL to be ready
+3. Compiles the application
+4. Executes Spring Boot
 
-### Opción 2: Ejecutar con Docker Compose (Solo PostgreSQL)
+### Option 2: Run with Docker Compose (PostgreSQL Only)
 
 ```bash
-# Levantar PostgreSQL
+# Start PostgreSQL
 docker-compose -f docker-compose-local.yml up -d postgres
 
-# En otra terminal, ejecutar Spring Boot
+# In another terminal, run Spring Boot
 mvn spring-boot:run -Dspring-boot.run.arguments="--spring.profiles.active=dev"
 ```
 
-### Opción 3: Ejecutar localmente sin Docker
+### Option 3: Run Locally without Docker
 
 ```bash
-# Asegúrate de que PostgreSQL esté corriendo en localhost:5432
-# con usuario: root, contraseña: admin123
+# Ensure PostgreSQL is running on localhost:5432
+# with user: root, password: admin123
 
-# Ejecutar la aplicación
+# Run the application
 mvn spring-boot:run -Dspring-boot.run.arguments="--spring.profiles.active=dev"
 ```
 
 ---
 
-## 📚 Documentación
+## 📚 Documentation
 
-### 📖 Guía Completa de Swagger
-Ver [SWAGGER_GUIDE.md](./SWAGGER_GUIDE.md) para:
-- Acceso a Swagger UI
-- Flujo de autenticación
-- Descripción de todos los endpoints
-- Ejemplos de respuestas
+### 🔗 API Access Points
 
-### 🔌 Ejemplos de Endpoints
-Ver [ENDPOINTS_EXAMPLES.md](./ENDPOINTS_EXAMPLES.md) para:
-- Ejemplos con cURL
-- Ejemplos con JSON
-- Códigos de error
-- Casos de uso completos
+- **Swagger UI**: http://localhost:8081/swagger-ui/index.html
+- **OpenAPI JSON**: http://localhost:8081/v3/api-docs
+- **Health Check**: http://localhost:8081/actuator/health
+- **Metrics**: http://localhost:8081/actuator/metrics
+
+### 📊 Service URLs
+
+| Service | URL | Credentials |
+|---------|-----|-------------|
+| **Grafana** | http://localhost:3000 | admin / admin |
+| **Prometheus** | http://localhost:9090 | - |
+| **CoopCredit App** | http://localhost:8081 | - |
+| **Swagger UI** | http://localhost:8081/swagger-ui/index.html | - |
+| **Actuator Health** | http://localhost:8081/actuator/health | - |
+| **Actuator Metrics** | http://localhost:8081/actuator/metrics | - |
+| **Actuator Prometheus** | http://localhost:8081/actuator/prometheus | - |
+| **Risk Service** | http://localhost:8082 | - |
 
 ---
 
-## 🔐 Autenticación
+## 🔐 Authentication
 
-### Flujo de Autenticación
+### Authentication Flow
 
-1. **Registrarse**: `POST /auth/register`
+1. **Register**: `POST /auth/register`
    ```json
    {
-     "documento": "1017654311",
-     "nombre": "Juan Pérez",
+     "document": "1017654311",
+     "username": "Juan Pérez",
      "email": "juan@example.com",
      "password": "SecurePassword123",
-     "salario": 3000000,
-     "fechaAfiliacion": "2024-01-15"
+     "annualIncome": 3500000.00
    }
    ```
 
-2. **Iniciar sesión**: `POST /auth/login`
+2. **Login**: `POST /auth/login`
    ```json
    {
-     "documento": "1017654311",
+     "username": "juan@example.com",
      "password": "SecurePassword123"
    }
    ```
 
-3. **Usar token**: Incluir en header
+3. **Response**:
+   ```json
+   {
+     "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqdWFuQGV4YW1wbGUuY29tIiwiaWF0IjoxNzY1MzI3MDQ5LCJleHAiOjE3NjU0MTM0NDl9..."
+   }
    ```
-   Authorization: Bearer <token_jwt>
-   ```
 
----
+### Using the Token
 
-## 📋 Endpoints Principales
+Include the token in the `Authorization` header for protected endpoints:
 
-### Autenticación
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| POST | `/auth/register` | Registrar nuevo usuario |
-| POST | `/auth/login` | Iniciar sesión |
-
-### Afiliados
-| Método | Endpoint | Descripción | Rol |
-|--------|----------|-------------|-----|
-| GET | `/api/v1/affiliates` | Obtener todos los afiliados | ADMIN |
-
-### Solicitudes de Crédito
-| Método | Endpoint | Descripción | Rol |
-|--------|----------|-------------|-----|
-| POST | `/api/v1/applications` | Crear solicitud de crédito | AFILIADO, ADMIN |
-
----
-
-## 🔑 Roles y Permisos
-
-| Rol | Permisos |
-|-----|----------|
-| `ROLE_AFILIADO` | Crear solicitudes de crédito |
-| `ROLE_ANALISTA` | Ver solicitudes pendientes |
-| `ROLE_ADMIN` | Acceso completo a todos los endpoints |
-
----
-
-## 🏗️ Arquitectura
-
-### Arquitectura Hexagonal
-
-```
-┌─────────────────────────────────────────┐
-│         CAPA DE PRESENTACIÓN            │
-│  (Controllers, DTOs, Mappers)           │
-└────────────────┬────────────────────────┘
-                 │
-┌────────────────▼────────────────────────┐
-│      PUERTOS DE ENTRADA (Use Cases)     │
-│  (CreateApplicationUseCase, etc.)       │
-└────────────────┬────────────────────────┘
-                 │
-┌────────────────▼────────────────────────┐
-│         DOMINIO PURO                    │
-│  (Modelos, Lógica de Negocio)           │
-└────────────────┬────────────────────────┘
-                 │
-┌────────────────▼────────────────────────┐
-│      PUERTOS DE SALIDA (Interfaces)     │
-│  (RepositoryPort, RiskServicePort)      │
-└────────────────┬────────────────────────┘
-                 │
-┌────────────────▼────────────────────────┐
-│         ADAPTADORES                     │
-│  (JPA Repositories, REST Clients)       │
-└─────────────────────────────────────────┘
-```
-
-### Estructura de Carpetas
-
-```
-src/main/java/com/riwi/coopcredit/
-├── domain/
-│   ├── model/              # Entidades del dominio
-│   ├── port/
-│   │   ├── in/             # Puertos de entrada (Use Cases)
-│   │   └── out/            # Puertos de salida (Interfaces)
-│   └── service/            # Servicios de dominio
-├── infrastructure/
-│   ├── adapter/
-│   │   ├── input/          # Adaptadores de entrada (Controllers)
-│   │   └── output/         # Adaptadores de salida (JPA, REST)
-│   ├── config/             # Configuración (Security, OpenAPI, etc.)
-│   └── exception/          # Manejo de excepciones
-└── application/            # Casos de uso implementados
+```bash
+curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8081/api/v1/applications
 ```
 
 ---
 
-## 🗄️ Base de Datos
+## 👥 Default Users
 
-### Migraciones Flyway
+### Admin User
+- **Email**: `admin@coopcredit.com`
+- **Password**: `admin123`
+- **Role**: `ROLE_ADMIN`
 
-Las migraciones se ejecutan automáticamente al iniciar la aplicación:
-
-- `V1__schema.sql`: Crear tablas
-- `V2__relaciones.sql`: Crear relaciones
-- `V3__datos_iniciales.sql`: Datos de prueba (opcional)
-
-### Diagrama ER
-
-```
-┌──────────────────┐
-│     USUARIO      │
-├──────────────────┤
-│ id (PK)          │
-│ documento (UQ)   │
-│ nombre           │
-│ email            │
-│ password         │
-│ rol              │
-└────────┬─────────┘
-         │
-         │ 1:N
-         │
-┌────────▼──────────────────┐
-│  SOLICITUD_CREDITO        │
-├───────────────────────────┤
-│ id (PK)                   │
-│ usuario_id (FK)           │
-│ monto_solicitado          │
-│ plazo_meses               │
-│ tasa_propuesta            │
-│ fecha_solicitud           │
-│ estado                    │
-└────────┬──────────────────┘
-         │
-         │ 1:1
-         │
-┌────────▼──────────────────┐
-│  EVALUACION_RIESGO        │
-├───────────────────────────┤
-│ id (PK)                   │
-│ solicitud_id (FK)         │
-│ score_riesgo              │
-│ nivel_riesgo              │
-│ motivo_aprobacion         │
-│ fecha_evaluacion          │
-└───────────────────────────┘
-```
+### Affiliate User
+- **Email**: `afiliado@coopcredit.com`
+- **Password**: `affiliate123`
+- **Role**: `ROLE_AFILIADO`
 
 ---
 
-## 📊 Observabilidad
+## 🏗️ Architecture
 
-### Health Check
-```bash
-curl http://localhost:8084/actuator/health
+### Hexagonal Architecture Layers
+
+```
+┌─────────────────────────────────────────────┐
+│         Input Adapters (Controllers)        │
+│         REST, WebSockets, etc.              │
+└──────────────┬──────────────────────────────┘
+               │
+┌──────────────▼──────────────────────────────┐
+│         Application Layer                   │
+│         Use Cases, Business Logic           │
+└──────────────┬──────────────────────────────┘
+               │
+┌──────────────▼──────────────────────────────┐
+│         Domain Layer                        │
+│         Pure Business Rules                 │
+└──────────────┬──────────────────────────────┘
+               │
+┌──────────────▼──────────────────────────────┐
+│         Output Adapters                     │
+│         Persistence, External Services      │
+└─────────────────────────────────────────────┘
 ```
 
-### Métricas
-```bash
-curl http://localhost:8084/actuator/metrics
-```
+### Key Components
 
-### Prometheus
-```bash
-curl http://localhost:8084/actuator/prometheus
-```
+- **Domain**: Pure business logic, no framework dependencies
+- **Application**: Use cases implementing business workflows
+- **Infrastructure**: Database access, external service integration
+- **Ports & Adapters**: Interfaces for dependency injection
 
 ---
 
-## 🧪 Pruebas
+## 🗄️ Database Schema
 
-### Ejecutar pruebas unitarias
-```bash
-mvn test
-```
+### Tables
 
-### Ejecutar pruebas de integración
-```bash
-mvn verify
-```
+- **coop_user**: User authentication and security
+- **role**: User roles (ADMIN, ANALYST, AFFILIATE)
+- **user_role**: Many-to-many relationship between users and roles
+- **affiliate**: Cooperative member profiles
+- **credit_application**: Credit application requests
+- **risk_evaluation**: Risk assessment results
 
-### Con cobertura
-```bash
-mvn test jacoco:report
-```
+### Migrations
 
----
+Database migrations are managed by Flyway:
 
-## 🐳 Docker
-
-### Build de la imagen
-```bash
-docker build -t coopcredit:latest .
-```
-
-### Ejecutar contenedor
-```bash
-docker run -p 8084:8080 \
-  -e DB_URL_POSTGRES=jdbc:postgresql://postgres:5432/coop_credit_db \
-  -e DB_USERNAME_POSTGRES=root \
-  -e DB_PASSWORD_POSTGRES=admin123 \
-  coopcredit:latest
-```
-
-### Docker Compose
-```bash
-docker-compose up -d
-docker-compose down
-docker-compose logs -f coopcredit-app
-```
+1. **V1__Initial_Schema.sql** - Table structure
+2. **V2__relaciones.sql** - Foreign keys and indexes
+3. **V3__insert_initial_data.sql** - Initial roles and users
 
 ---
 
-## 🔗 Enlaces Útiles
+## 🔧 Configuration
 
-- **Swagger UI**: http://localhost:8081/swagger-ui/index.html
-- **OpenAPI JSON**: http://localhost:8081/v3/api-docs
-- **Health**: http://localhost:8081/actuator/health
-- **Métricas**: http://localhost:8081/actuator/metrics
-- **Prometheus**: http://localhost:8081/actuator/prometheus
-
----
-
-## 📝 Configuración
-
-### Variables de Entorno
+### Environment Variables
 
 ```bash
-# Base de datos
+# Database
 DB_URL_POSTGRES=jdbc:postgresql://localhost:5432/coop_credit_db
 DB_USERNAME_POSTGRES=root
 DB_PASSWORD_POSTGRES=admin123
 
-# Servicio externo
+# External Services
 EXTERNAL_SERVICE_URL=http://localhost:8082/risk-evaluation
 
 # JWT
@@ -337,37 +214,150 @@ SECRET_KEY=MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI
 EXPIRATION_TOKEN=86400000
 ```
 
----
+### Application Properties
 
-## 🛠️ Tecnologías
-
-- **Framework**: Spring Boot 3.5.7
-- **Java**: 17
-- **Base de datos**: PostgreSQL 16
-- **ORM**: JPA + Hibernate
-- **Seguridad**: Spring Security + JWT
-- **Validación**: Bean Validation
-- **Mapeo**: MapStruct
-- **Documentación**: SpringDoc OpenAPI (Swagger)
-- **Observabilidad**: Actuator + Micrometer + Prometheus
-- **Testing**: JUnit 5 + Mockito + Testcontainers
-- **Build**: Maven
-- **Containerización**: Docker
+See `src/main/resources/application.yml` for full configuration.
 
 ---
 
-## 📄 Licencia
+## 🧪 Testing
 
-Apache License 2.0
+### Run All Tests
+
+```bash
+mvn test
+```
+
+### Run Specific Test Class
+
+```bash
+mvn test -Dtest=AuthControllerTest
+```
+
+### Test Coverage
+
+```bash
+mvn jacoco:report
+```
 
 ---
 
-## 👥 Autor
+## 📊 Monitoring & Observability
 
-CoopCredit Team
+### Actuator Endpoints
+
+- `/actuator/health` - Application health status
+- `/actuator/metrics` - Application metrics
+- `/actuator/info` - Application information
+- `/actuator/loggers` - Logger configuration
+
+### Metrics Available
+
+- HTTP request count and duration
+- Database connection pool metrics
+- JVM memory and thread metrics
+- Custom application metrics
 
 ---
 
-## 📞 Soporte
+## 🐳 Docker Deployment
 
-Para reportar bugs o sugerencias, contacta a: support@coopcredit.com
+### Build Docker Image
+
+```bash
+docker build -t coopcredit:latest .
+```
+
+### Run with Docker Compose
+
+```bash
+docker-compose up -d
+```
+
+### View Logs
+
+```bash
+docker-compose logs -f coopcredit-app
+```
+
+---
+
+## 📝 API Endpoints
+
+### Authentication
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/auth/register` | Register new user |
+| POST | `/auth/login` | User login |
+
+### Affiliates
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/affiliates` | List all affiliates |
+| GET | `/api/v1/affiliates/{id}` | Get affiliate by ID |
+| POST | `/api/v1/affiliates` | Create new affiliate |
+| PUT | `/api/v1/affiliates/{id}` | Update affiliate |
+
+### Credit Applications
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/applications` | List applications |
+| GET | `/api/v1/applications/{id}` | Get application by ID |
+| POST | `/api/v1/applications` | Create new application |
+| PUT | `/api/v1/applications/{id}` | Update application |
+
+---
+
+## 🛠️ Development
+
+### Project Structure
+
+```
+src/
+├── main/
+│   ├── java/com/riwi/coopcredit/
+│   │   ├── domain/              # Pure business logic
+│   │   ├── application/         # Use cases
+│   │   ├── infrastructure/      # Adapters & configuration
+│   │   └── CoopCreditApplication.java
+│   └── resources/
+│       ├── application.yml
+│       ├── application-dev.yml
+│       └── db/migration/        # Flyway migrations
+└── test/
+    └── java/com/riwi/coopcredit/
+        └── (Test classes)
+```
+
+### Build
+
+```bash
+mvn clean install
+```
+
+### Run
+
+```bash
+mvn spring-boot:run
+```
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+## 👥 Contributors
+
+- Development Team
+
+---
+
+## 📞 Support
+
+For issues or questions, please open an issue on the project repository.

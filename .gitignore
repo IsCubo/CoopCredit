@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+# Prometheus data
+/data/
+*.db
+
+# Grafana data
+provisioning/dashboards/
