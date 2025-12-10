@@ -2,6 +2,7 @@ package com.riwi.coopcredit.infrastructure.adapter.input.controller;
 
 import com.riwi.coopcredit.domain.model.CreditApplication;
 import com.riwi.coopcredit.domain.port.in.CreateApplicationUseCase;
+import com.riwi.coopcredit.domain.port.out.CreditApplicationRepositoryPort;
 import com.riwi.coopcredit.infrastructure.adapter.input.dto.ApplicationRequest;
 import com.riwi.coopcredit.infrastructure.adapter.input.dto.ApplicationResponse;
 import com.riwi.coopcredit.infrastructure.adapter.input.mapper.ApplicationRestMapper;
@@ -18,6 +19,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("/api/v1/applications")
 @RequiredArgsConstructor
@@ -26,7 +30,73 @@ import org.springframework.web.bind.annotation.*;
 public class CreditApplicationController {
 
     private final CreateApplicationUseCase createApplicationUseCase;
+    private final CreditApplicationRepositoryPort creditApplicationRepositoryPort;
     private final ApplicationRestMapper mapper;
+
+    @GetMapping
+    @Operation(
+            summary = "Obtener todas las solicitudes de crédito",
+            description = "Retorna la lista de solicitudes de crédito. " +
+                    "Los afiliados ven solo sus solicitudes, los analistas ven solicitudes PENDIENTE, " +
+                    "y los administradores ven todas."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Lista de solicitudes obtenida exitosamente",
+                    content = @Content(schema = @Schema(implementation = ApplicationResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "No autorizado: token JWT inválido o expirado"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Error interno del servidor"
+            )
+    })
+    public ResponseEntity<List<ApplicationResponse>> getAllApplications() {
+        List<ApplicationResponse> responses = creditApplicationRepositoryPort.findAll().stream()
+                .map(mapper::toResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(
+            summary = "Obtener solicitud de crédito por ID",
+            description = "Retorna los detalles de una solicitud de crédito específica. " +
+                    "Requiere ser el afiliado solicitante, un analista o administrador."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Solicitud obtenida exitosamente",
+                    content = @Content(schema = @Schema(implementation = ApplicationResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "No autorizado: token JWT inválido o expirado"
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Acceso denegado"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Solicitud no encontrada"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Error interno del servidor"
+            )
+    })
+    public ResponseEntity<ApplicationResponse> getApplicationById(@PathVariable Long id) {
+        return creditApplicationRepositoryPort.findById(id)
+                .map(application -> ResponseEntity.ok(mapper.toResponse(application)))
+                .orElse(ResponseEntity.notFound().build());
+    }
 
     @PostMapping
     @Operation(
@@ -76,5 +146,51 @@ public class CreditApplicationController {
         ApplicationResponse response = mapper.toResponse(createdApplication);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/{id}")
+    @Operation(
+            summary = "Actualizar solicitud de crédito",
+            description = "Actualiza una solicitud de crédito existente. " +
+                    "Requiere rol ROLE_ADMIN."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Solicitud actualizada exitosamente",
+                    content = @Content(schema = @Schema(implementation = ApplicationResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Validación fallida"
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "No autorizado: token JWT inválido o expirado"
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Acceso denegado: se requiere rol ROLE_ADMIN"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Solicitud no encontrada"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Error interno del servidor"
+            )
+    })
+    public ResponseEntity<ApplicationResponse> updateApplication(
+            @PathVariable Long id,
+            @Valid @RequestBody ApplicationRequest request) {
+        return creditApplicationRepositoryPort.findById(id)
+                .map(existing -> {
+                    CreditApplication updated = mapper.toDomain(request);
+                    updated.setId(id);
+                    CreditApplication saved = creditApplicationRepositoryPort.save(updated);
+                    return ResponseEntity.ok(mapper.toResponse(saved));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 }

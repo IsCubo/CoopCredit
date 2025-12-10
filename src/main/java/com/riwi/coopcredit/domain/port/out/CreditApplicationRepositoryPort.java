@@ -9,6 +9,7 @@ public interface CreditApplicationRepositoryPort {
 
     CreditApplication save(CreditApplication application);
     Optional<CreditApplication> findById(Long id);
+    List<CreditApplication> findAll();
     List<CreditApplication> findAllByAffiliateId(Long affiliateId);
 
 }

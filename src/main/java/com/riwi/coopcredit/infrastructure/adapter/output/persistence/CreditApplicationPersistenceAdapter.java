@@ -33,7 +33,16 @@ public class CreditApplicationPersistenceAdapter implements CreditApplicationRep
     }
 
     @Override
+    public List<CreditApplication> findAll() {
+        return applicationJpaRepository.findAll().stream()
+                .map(applicationMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<CreditApplication> findAllByAffiliateId(Long affiliateId) {
-        return List.of();
+        return applicationJpaRepository.findAllByAffiliateId(affiliateId).stream()
+                .map(applicationMapper::toDomain)
+                .collect(Collectors.toList());
     }
 }

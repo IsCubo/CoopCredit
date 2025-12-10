@@ -108,47 +108,45 @@ class RegisterAffiliateUseCaseImplTest {
     }
 
     @Test
-    @DisplayName("Debe lanzar excepción cuando el salario es inválido")
+    @DisplayName("Debe lanzar excepción cuando el salario es inválido (en el constructor)")
     void testRegisterAffiliateWithInvalidSalary() {
-        // Arrange
-        Affiliate invalidAffiliate = new Affiliate(
-                "1017654312",
-                "María",
-                "García",
-                "maria@example.com",
-                -1000.0 // Salario negativo
-        );
-
-        // Act & Assert
+        // Act & Assert - La excepción se lanza en el constructor, no en register()
         DomainException exception = assertThrows(DomainException.class, () -> {
-            registerAffiliateUseCase.register(invalidAffiliate);
+            new Affiliate(
+                    "1017654312",
+                    "María",
+                    "García",
+                    "maria@example.com",
+                    -1000.0 // Salario negativo
+            );
         });
 
         assertTrue(exception.getMessage().contains("salario anual debe ser un valor positivo"));
 
-        // Verify
+        // Verify - No se debe llamar al repositorio
         verify(affiliateRepositoryPort, never()).findByDocument(any());
         verify(affiliateRepositoryPort, never()).save(any());
     }
 
     @Test
-    @DisplayName("Debe registrar afiliado con salario cero y lanzar excepción")
+    @DisplayName("Debe lanzar excepción cuando el salario es cero (en el constructor)")
     void testRegisterAffiliateWithZeroSalary() {
-        // Arrange
-        Affiliate invalidAffiliate = new Affiliate(
-                "1017654313",
-                "Carlos",
-                "Rodríguez",
-                "carlos@example.com",
-                0.0 // Salario cero
-        );
-
-        // Act & Assert
+        // Act & Assert - La excepción se lanza en el constructor, no en register()
         DomainException exception = assertThrows(DomainException.class, () -> {
-            registerAffiliateUseCase.register(invalidAffiliate);
+            new Affiliate(
+                    "1017654313",
+                    "Carlos",
+                    "Rodríguez",
+                    "carlos@example.com",
+                    0.0 // Salario cero
+            );
         });
 
         assertTrue(exception.getMessage().contains("salario anual debe ser un valor positivo"));
+
+        // Verify - No se debe llamar al repositorio
+        verify(affiliateRepositoryPort, never()).findByDocument(any());
+        verify(affiliateRepositoryPort, never()).save(any());
     }
 
     @Test
